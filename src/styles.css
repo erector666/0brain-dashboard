@@ -116,6 +116,66 @@ main {
   order: -1;
 }
 
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f6f8;
+}
+
+.auth-card {
+  background: #fff;
+  border: 1px solid #d9dee5;
+  border-radius: 12px;
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.auth-card h1 {
+  margin-bottom: 4px;
+}
+
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid #d9dee5;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.google-btn:hover {
+  background: #f8fafc;
+  border-color: #2563eb;
+}
+
+.auth-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 4px 18px;
+  font-size: 12px;
+  color: #667085;
+  background: #fbfcfd;
+  border-bottom: 1px solid #d9dee5;
+}
+
+.logout-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
 .panel-title {
   font-weight: 700;
   margin-bottom: 10px;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AGENTS } from "./agents";
+import { AGENTS, warningForAgent } from "./agents";
 import { fetchMemories, fetchMemoryDetail, fetchReviewQueue, fetchStats } from "./api";
 import { AgentSidebar } from "./components/AgentSidebar";
 import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
@@ -7,6 +7,7 @@ import { MemoryDetail } from "./components/MemoryDetail";
 import { MemoryTable } from "./components/MemoryTable";
 import { SearchPanel } from "./components/SearchPanel";
 import { Tabs } from "./components/Tabs";
+import { Auth } from "./Auth";
 import type { AgentConfig, MemoryRecord, StatsResponse, TabId } from "./types";
 
 export default function App() {
@@ -90,6 +91,7 @@ export default function App() {
   }
 
   return (
+    <Auth>
     <div className="app">
       <header>
         <div>
@@ -148,6 +150,7 @@ export default function App() {
         <MemoryDetail agent={selectedAgent} memory={detailMemory || selectedMemory} onChanged={refresh} />
       </main>
     </div>
+    </Auth>
   );
 }
 

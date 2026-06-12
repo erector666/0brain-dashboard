@@ -1,12 +1,17 @@
 import express from "express";
 import { loadConfig } from "./config.js";
 import { Ob1Client } from "./ob1Client.js";
+import { createServerClient } from "./auth.js";
 
 const config = loadConfig();
 const client = new Ob1Client(config.apiBase, config.apiKey);
 const app = express();
+const { requireAuth } = createServerClient();
 
 app.use(express.json({ limit: "1mb" }));
+
+// Auth check on all /api/* routes
+app.use("/api", requireAuth);
 
 app.get("/api/config", (_req, res) => {
   res.json({ apiBase: config.apiBase, hasApiKey: true });
