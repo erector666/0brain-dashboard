@@ -83,3 +83,4 @@ npm run test:e2e
 ```
 
 `test:e2e` uses Playwright against the local dev server and live OB1 backend. It verifies dashboard load, live counts, agent switching, semantic recall, metadata detail visibility, and that secret names are not rendered in the page.
+
