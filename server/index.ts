@@ -20,8 +20,11 @@ app.get("/api/debug", (_req, res) => {
   });
 });
 
-// Auth check on all other /api/* routes
-app.use("/api", requireAuth);
+// Auth check on all /api/* routes (except debug)
+app.use("/api", (req, res, next) => {
+  if (req.path === "/debug") return next();
+  requireAuth(req, res, next);
+});
 
 app.get("/api/config", (_req, res) => {
   res.json({
