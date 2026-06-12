@@ -2,18 +2,30 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import type { User } from "@supabase/supabase-js";
 
+const ALLOWED_EMAILS = ["kango666@gmail.com"];
+const SITE_URL = import.meta.env.VITE_SITE_URL || window.location.origin;
+
 export function Auth({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+      const u = data.session?.user ?? null;
+      setUser(u);
+      if (u && !ALLOWED_EMAILS.includes(u.email || "")) {
+        setAccessDenied(true);
+      }
       setLoading(false);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u && !ALLOWED_EMAILS.includes(u.email || "")) {
+        setAccessDenied(true);
+      }
     });
 
     return () => listener?.subscription.unsubscribe();
@@ -23,7 +35,7 @@ export function Auth({ children }: { children: React.ReactNode }) {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin
+        redirectTo: SITE_URL
       }
     });
   }
@@ -37,6 +49,25 @@ export function Auth({ children }: { children: React.ReactNode }) {
       <div className="auth-screen">
         <div className="auth-card">
           <div className="loading">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <h1>0Brain Dashboard</h1>
+          <p style={{ color: "#667085", marginBottom: 24 }}>
+            Signed in as <strong>{user?.email}</strong>
+          </p>
+          <div className="error" style={{ marginBottom: 16 }}>
+            Access denied. This dashboard is restricted to authorized users only.
+          </div>
+          <button className="google-btn" onClick={signOut}>
+            Sign out
+          </button>
         </div>
       </div>
     );
