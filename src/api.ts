@@ -1,18 +1,12 @@
 import type { MemoriesResponse, MemoryDetailResponse, MemoryRecord, RecallResponse, StatsResponse } from "./types";
-import { getSessionToken } from "./supabase";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = await getSessionToken();
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    ...(init?.headers as Record<string, string> || {})
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
   const response = await fetch(path, {
     ...init,
-    headers
+    headers: {
+      "content-type": "application/json",
+      ...(init?.headers as Record<string, string> || {})
+    }
   });
   const data = await response.json();
   if (!response.ok || data.error) {
