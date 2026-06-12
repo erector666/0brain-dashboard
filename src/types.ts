@@ -8,6 +8,7 @@ export type AgentConfig = {
   provider: "hermes-0brain-memory" | "ob1-agent-memory" | "suspect";
   expected: boolean;
   avatar?: string;
+  color?: string;
 };
 
 export type StatsResponse = {

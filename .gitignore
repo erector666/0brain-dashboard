@@ -10,3 +10,5 @@ test-results/
 *.log
 supabase/config.toml
 supabase/.temp/
+
+.vercel

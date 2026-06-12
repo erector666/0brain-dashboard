@@ -22,17 +22,21 @@ export function MemoryTable({
           </tr>
         </thead>
         <tbody>
-          {memories.map((memory) => (
+          {memories.map((memory, index) => (
             <tr
               key={memory.memory_id}
-              className={memory.memory_id === selectedId ? "selected" : ""}
+              className={`${memory.memory_id === selectedId ? "selected" : ""} ${index % 2 === 1 ? "striped" : ""}`}
               onClick={() => onSelect(memory)}
             >
-              <td>{formatDate(memory.freshness?.created_at || memory.source?.timestamp)}</td>
+              <td className="cell-date">{formatDate(memory.freshness?.created_at || memory.source?.timestamp)}</td>
               <td>{memory.memory_type || inferType(memory)}</td>
-              <td>{memory.summary || memory.content?.slice(0, 120)}</td>
-              <td>{memory.review_status || memory.provenance?.status || "unknown"}</td>
-              <td>{memory.retrieval?.strategy || (memory.similarity ? `${Math.round(memory.similarity * 100)}%` : "-")}</td>
+              <td className="cell-summary">{memory.summary || memory.content?.slice(0, 120)}</td>
+              <td>
+                <span className={`badge badge-${memory.review_status || memory.provenance?.status || "unknown"}`}>
+                  {memory.review_status || memory.provenance?.status || "unknown"}
+                </span>
+              </td>
+              <td className="cell-retrieval">{memory.retrieval?.strategy || (memory.similarity ? `${Math.round(memory.similarity * 100)}%` : "-")}</td>
             </tr>
           ))}
           {memories.length === 0 ? (

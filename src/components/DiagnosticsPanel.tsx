@@ -49,12 +49,15 @@ export function DiagnosticsPanel({ agent }: { agent: AgentConfig }) {
       {FUNCTION_MAP.map((fn) => (
         <div className="function-card" key={`${fn.method}-${fn.path}`}>
           <div className="function-head">
-            <strong>{fn.method} {fn.path}</strong>
-            <span>{fn.usedBy}</span>
+            <div className="function-head-left">
+              <strong>{fn.method} {fn.path}</strong>
+            </div>
+            <span className="function-used-by">{fn.usedBy}</span>
           </div>
-          <p>{fn.purpose}</p>
-          <div className={fn.safeCheck ? "check" : "check muted"}>
-            {fn.safeCheck ? checks[fn.path] || "checking..." : "manual/safe-action only"}
+          <p className="function-purpose">{fn.purpose}</p>
+          <div className={`function-check ${fn.safeCheck ? "check-ok" : "check-muted"}`}>
+            <span className="check-icon">{fn.safeCheck ? "✓" : "○"}</span>
+            <span>{fn.safeCheck ? checks[fn.path] || "checking..." : "manual/safe-action only"}</span>
           </div>
         </div>
       ))}

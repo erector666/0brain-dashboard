@@ -10,6 +10,16 @@ import { Tabs } from "./components/Tabs";
 import { Auth } from "./Auth";
 import type { AgentConfig, MemoryRecord, StatsResponse, TabId } from "./types";
 
+const COLOR_STORAGE_KEY = "0brain-agent-colors";
+
+function loadAgentColors(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(COLOR_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
 export default function App() {
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(AGENTS[0]);
   const [activeTab, setActiveTab] = useState<TabId>("memories");
@@ -21,6 +31,33 @@ export default function App() {
   const [error, setError] = useState("");
   const [refreshToken, setRefreshToken] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Inject CSS custom properties based on selected agent's color
+  useEffect(() => {
+    const customColors = loadAgentColors();
+    const agentColor = customColors[selectedAgent.id] || selectedAgent.color || "#3b82f6";
+
+    // Parse RGB for alpha usage
+    const r = parseInt(agentColor.slice(1, 3), 16);
+    const g = parseInt(agentColor.slice(3, 5), 16);
+    const b = parseInt(agentColor.slice(5, 7), 16);
+    const rgb = `${r}, ${g}, ${b}`;
+
+    document.documentElement.style.setProperty("--agent-accent", agentColor);
+    document.documentElement.style.setProperty("--agent-accent-rgb", rgb);
+    document.documentElement.style.setProperty("--agent-accent-light", `${agentColor}1a`);
+    document.documentElement.style.setProperty("--agent-accent-glow", `rgba(${rgb}, 0.12)`);
+  }, [selectedAgent]);
+
+  // Listen for color changes from sidebar (storage event fires in other tabs)
+  useEffect(() => {
+    const handler = () => {
+      // Force re-render to pick up new colors via CSS vars
+      setRefreshToken((v) => v + 1);
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -101,8 +138,8 @@ export default function App() {
         <div className="header-stats">
           <button className="menu-btn" onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle agents">☰</button>
           <strong>{selectedAgent.name}</strong>
-          <span>{selectedAgent.workspaceId}</span>
-          <span>{selectedStats ? `${selectedStats.total} memories` : "loading"}</span>
+          <span className="header-workspace">{selectedAgent.workspaceId}</span>
+          <span className="header-count">{selectedStats ? `${selectedStats.total} memories` : "loading"}</span>
         </div>
       </header>
 
@@ -119,7 +156,7 @@ export default function App() {
               <h2>{selectedAgent.name}</h2>
               <p>{selectedAgent.family} / {selectedAgent.provider}</p>
             </div>
-            <button onClick={refresh}>Refresh</button>
+            <button className="btn-primary" onClick={refresh}>↻ Refresh</button>
           </div>
 
           <div className="metric-row">
