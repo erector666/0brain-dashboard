@@ -130,7 +130,7 @@ export default function App() {
   return (
     <Auth>
     <div className="app">
-      <header>
+      <header className="app-header">
         <div>
           <h1>0Brain Dashboard</h1>
           <p>Inspect Hermes and OpenClaw agent memories through the shared OB1 backend.</p>
@@ -143,14 +143,14 @@ export default function App() {
         </div>
       </header>
 
-      <main>
+      <main className="main-layout">
         <AgentSidebar agents={AGENTS} selected={selectedAgent} stats={stats} open={sidebarOpen} onSelect={(agent) => {
           setSelectedAgent(agent);
           setActiveTab("memories");
           setSidebarOpen(false);
         }} />
 
-        <section className="workspace">
+        <section className="workspace-panel">
           <div className="workspace-head">
             <div>
               <h2>{selectedAgent.name}</h2>

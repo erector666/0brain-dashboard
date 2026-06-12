@@ -79,8 +79,8 @@ export function AgentSidebar({
   return (
     <>
       {open ? <div className="sidebar-overlay" onClick={() => onSelect(selected)} /> : null}
-      <aside className={`agent-sidebar${open ? " open" : ""}`}>
-        <div className="panel-title agent-sidebar-title">
+      <aside className={`sidebar-panel${open ? " open" : ""}`}>
+        <div className="sidebar-title">
           <span>Agents</span>
           <label className="avatar-toggle">
             <input

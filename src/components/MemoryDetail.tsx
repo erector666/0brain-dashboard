@@ -36,6 +36,16 @@ export function MemoryDetail({
     setEditContent(memory?.content || "");
   }, [memory?.memory_id, memory?.summary, memory?.content]);
 
+  // Close review menu on click outside (MUST be before early return to keep hook order consistent)
+  useEffect(() => {
+    if (!reviewMenuOpen) return;
+    function handleClick() {
+      setReviewMenuOpen(false);
+    }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [reviewMenuOpen]);
+
   if (!memory) {
     return (
       <aside className="detail-panel">
@@ -94,16 +104,6 @@ export function MemoryDetail({
   const createdDate = memory.freshness?.created_at || memory.source?.timestamp;
   const staleDate = memory.freshness?.stale_after;
   const confirmedAt = memory.freshness?.last_confirmed_at;
-
-  // Close review menu on click outside
-  useEffect(() => {
-    if (!reviewMenuOpen) return;
-    function handleClick() {
-      setReviewMenuOpen(false);
-    }
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [reviewMenuOpen]);
 
   return (
     <aside className="detail-panel">
