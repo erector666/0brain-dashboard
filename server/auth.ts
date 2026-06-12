@@ -15,6 +15,11 @@ export function createServerClient() {
     : null;
 
   function requireAuth(req: Request, res: Response, next: NextFunction) {
+    // Skip auth for debug endpoint
+    if (req.path === "/debug" || req.originalUrl?.includes("/api/debug")) {
+      return next();
+    }
+
     if (!supabase) {
       return next();
     }

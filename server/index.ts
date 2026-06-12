@@ -11,8 +11,10 @@ const { requireAuth } = createServerClient();
 app.use(express.json({ limit: "1mb" }));
 
 // Debug — no auth required
-app.get("/api/debug", (_req, res) => {
+app.get("/api/debug", (req, res) => {
   res.json({
+    path: req.path,
+    originalUrl: req.originalUrl,
     hasServiceKey: !!process.env.SUPABASE_SERVICE_KEY,
     hasAllowedEmail: !!process.env.ALLOWED_EMAIL,
     nodeEnv: process.env.NODE_ENV,
@@ -20,11 +22,8 @@ app.get("/api/debug", (_req, res) => {
   });
 });
 
-// Auth check on all /api/* routes (except debug)
-app.use("/api", (req, res, next) => {
-  if (req.path === "/debug") return next();
-  requireAuth(req, res, next);
-});
+// Auth check on all /api/* routes
+app.use("/api", requireAuth);
 
 app.get("/api/config", (_req, res) => {
   res.json({
