@@ -29,11 +29,13 @@ export function AgentSidebar({
   agents,
   selected,
   stats,
+  open,
   onSelect
 }: {
   agents: AgentConfig[];
   selected: AgentConfig;
   stats: Record<string, StatsResponse | undefined>;
+  open: boolean;
   onSelect: (agent: AgentConfig) => void;
 }) {
   const [showAvatars, setShowAvatars] = useState(true);
@@ -50,7 +52,9 @@ export function AgentSidebar({
   };
 
   return (
-    <aside className="agent-sidebar">
+    <>
+    {open ? <div className="sidebar-overlay" onClick={() => onSelect(selected)} /> : null}
+    <aside className={`agent-sidebar${open ? " open" : ""}`}>
       <div className="panel-title">
         Agents
         <label className="avatar-toggle">
@@ -107,5 +111,6 @@ export function AgentSidebar({
         </div>
       ))}
     </aside>
+    </>
   );
 }

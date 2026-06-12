@@ -19,6 +19,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refreshToken, setRefreshToken] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,6 +97,7 @@ export default function App() {
           <p>Inspect Hermes and OpenClaw agent memories through the shared OB1 backend.</p>
         </div>
         <div className="header-stats">
+          <button className="menu-btn" onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle agents">☰</button>
           <strong>{selectedAgent.name}</strong>
           <span>{selectedAgent.workspaceId}</span>
           <span>{selectedStats ? `${selectedStats.total} memories` : "loading"}</span>
@@ -103,9 +105,10 @@ export default function App() {
       </header>
 
       <main>
-        <AgentSidebar agents={AGENTS} selected={selectedAgent} stats={stats} onSelect={(agent) => {
+        <AgentSidebar agents={AGENTS} selected={selectedAgent} stats={stats} open={sidebarOpen} onSelect={(agent) => {
           setSelectedAgent(agent);
           setActiveTab("memories");
+          setSidebarOpen(false);
         }} />
 
         <section className="workspace">
