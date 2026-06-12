@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { deleteMemory, editMemory, reviewMemory } from "../api";
 import type { AgentConfig, MemoryRecord } from "../types";
+import { FileText, Fingerprint, CalendarClock, Layers, Paperclip, Settings, Edit3, MoreVertical, Trash2, Check, X, AlertTriangle, Ban, EyeOff, Save, XCircle } from "lucide-react";
 
 const reviewActions = [
-  ["confirm", "Confirm"],
-  ["evidence_only", "Evidence Only"],
-  ["reject", "Reject"],
-  ["mark_stale", "Mark Stale"],
-  ["restrict_scope", "Restrict Scope"]
+  ["confirm", "Confirm", Check],
+  ["evidence_only", "Evidence Only", EyeOff],
+  ["reject", "Reject", X],
+  ["mark_stale", "Mark Stale", AlertTriangle],
+  ["restrict_scope", "Restrict Scope", Ban]
 ] as const;
 
 export function MemoryDetail({
@@ -49,9 +50,9 @@ export function MemoryDetail({
   if (!memory) {
     return (
       <aside className="detail-panel">
-        <div className="panel-title">Memory Detail</div>
+        <div className="panel-title">Memory Inspector</div>
         <div className="detail-empty-state">
-          <div className="detail-empty-icon">📄</div>
+          <div className="detail-empty-icon"><FileText size={40} /></div>
           <p>Select a memory to inspect content, metadata, source refs, and review state.</p>
         </div>
       </aside>
@@ -107,20 +108,23 @@ export function MemoryDetail({
 
   return (
     <aside className="detail-panel">
-      <div className="panel-title">Memory Detail</div>
+      <div className="panel-title">Memory Inspector</div>
 
       {/* Action bar — grouped */}
       <div className="detail-actions">
         {isEditing ? (
           <>
             <button className="btn-primary" onClick={onSaveEdit} disabled={saving}>
+              <Save size={15} />
               {saving ? "Saving..." : "Save"}
             </button>
-            <button onClick={() => setIsEditing(false)} disabled={saving}>Cancel</button>
+            <button onClick={() => setIsEditing(false)} disabled={saving}><XCircle size={15} /> Cancel</button>
           </>
         ) : (
           <>
-            <button className="btn-primary" onClick={() => setIsEditing(true)} disabled={saving}>✏️ Edit</button>
+            <button className="btn-primary" onClick={() => setIsEditing(true)} disabled={saving}>
+              <Edit3 size={15} /> Edit
+            </button>
             <div className="detail-review-group">
               <button
                 className="detail-review-trigger"
@@ -130,16 +134,18 @@ export function MemoryDetail({
                 }}
                 disabled={saving}
               >
-                📋 Review ▾
+                <MoreVertical size={15} /> Actions ▾
               </button>
               {reviewMenuOpen ? (
                 <div className="detail-review-menu">
-                  {reviewActions.map(([action, label]) => (
-                    <button key={action} onClick={() => onReview(action)}>{label}</button>
+                  {reviewActions.map(([action, label, Icon]) => (
+                    <button key={action} onClick={() => onReview(action)}>
+                      <Icon size={13} /> {label}
+                    </button>
                   ))}
-                    <div style={{ borderTop: "1px solid var(--border-light)", margin: "4px 0" }} />
+                    <div className="menu-separator" />
                     <button className="btn-danger" onClick={onDelete} disabled={saving} style={{ border: "none", background: "transparent", width: "100%", textAlign: "left", padding: "6px 10px", fontSize: "12px", borderRadius: "var(--radius-sm)" }}>
-                      🗑️ Delete
+                      <Trash2 size={13} /> Delete
                     </button>
                 </div>
               ) : null}
@@ -153,7 +159,7 @@ export function MemoryDetail({
       {/* Content section */}
       <section className="detail-section">
         <div className="detail-section-heading">
-          <span className="detail-section-icon">📝</span>
+          <span className="detail-section-icon"><FileText size={16} /></span>
           <h3>Content</h3>
         </div>
         {isEditing ? (
@@ -178,7 +184,7 @@ export function MemoryDetail({
       {/* Identity section */}
       <section className="detail-section">
         <div className="detail-section-heading">
-          <span className="detail-section-icon">🪪</span>
+          <span className="detail-section-icon"><Fingerprint size={16} /></span>
           <h3>Identity</h3>
         </div>
         <dl className="detail-dl">
@@ -205,7 +211,7 @@ export function MemoryDetail({
       {createdDate || staleDate || confirmedAt ? (
         <section className="detail-section">
           <div className="detail-section-heading">
-            <span className="detail-section-icon">⏱️</span>
+            <span className="detail-section-icon"><CalendarClock size={16} /></span>
             <h3>Freshness</h3>
           </div>
           <dl className="detail-dl">
@@ -235,7 +241,7 @@ export function MemoryDetail({
       {hasMetadata(metadata) ? (
         <section className="detail-section">
           <div className="detail-section-heading">
-            <span className="detail-section-icon">🔍</span>
+            <span className="detail-section-icon"><Layers size={16} /></span>
             <h3>Extracted Metadata</h3>
           </div>
           <div className="detail-metadata-grid">
@@ -257,7 +263,7 @@ export function MemoryDetail({
       {memory.source ? (
         <section className="detail-section">
           <div className="detail-section-heading">
-            <span className="detail-section-icon">📎</span>
+            <span className="detail-section-icon"><Paperclip size={16} /></span>
             <h3>Source</h3>
           </div>
           <dl className="detail-dl">
@@ -292,7 +298,7 @@ export function MemoryDetail({
       {/* Collapsible Raw Metadata */}
       <section className="detail-section">
         <div className="detail-section-heading">
-          <span className="detail-section-icon">⚙️</span>
+          <span className="detail-section-icon"><Settings size={16} /></span>
           <h3>Raw Metadata</h3>
           <button
             className="detail-collapse-btn"

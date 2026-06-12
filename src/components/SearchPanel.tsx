@@ -1,7 +1,9 @@
 import { FormEvent, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Search, Zap } from "lucide-react";
 import { runRecall } from "../api";
 import type { AgentConfig, MemoryRecord, RecallResponse } from "../types";
-import { MemoryTable } from "./MemoryTable";
+import { MemoryStream } from "./MemoryStream";
 
 export function SearchPanel({
   agent,
@@ -33,12 +35,29 @@ export function SearchPanel({
   return (
     <div className="stack">
       <form className="toolbar" onSubmit={onSubmit}>
+        <Search size={18} className="toolbar-search-icon" />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Semantic search ${agent.workspaceId}`} />
         <label className="checkbox">
           <input type="checkbox" checked={includeUnconfirmed} onChange={(event) => setIncludeUnconfirmed(event.target.checked)} />
           include unconfirmed
         </label>
-        <button type="submit" disabled={loading}>{loading ? "Searching" : "Search"}</button>
+        <button type="submit" disabled={loading} className="btn-primary">
+          <Zap size={15} />
+          {loading ? "Searching" : "Search"}
+        </button>
+
+        <AnimatePresence>
+          {loading ? (
+            <motion.div
+              className="recall-scanner"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <span />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </form>
       {error ? <div className="error">{error}</div> : null}
       {result ? (
@@ -46,7 +65,7 @@ export function SearchPanel({
           Request {result.request_id} / {result.memories.length} memories / {result.memories[0]?.retrieval?.strategy || "no retrieval"}
         </div>
       ) : null}
-      <MemoryTable memories={result?.memories || []} onSelect={onSelect} />
+      <MemoryStream memories={result?.memories || []} onSelect={onSelect} />
     </div>
   );
 }

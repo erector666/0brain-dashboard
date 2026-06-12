@@ -1,12 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { AGENTS, warningForAgent } from "./agents";
+import { useEffect, useState } from "react";
+import { AGENTS } from "./agents";
 import { fetchMemories, fetchMemoryDetail, fetchReviewQueue, fetchStats } from "./api";
 import { AgentSidebar } from "./components/AgentSidebar";
 import { DiagnosticsPanel } from "./components/DiagnosticsPanel";
 import { MemoryDetail } from "./components/MemoryDetail";
-import { MemoryTable } from "./components/MemoryTable";
 import { SearchPanel } from "./components/SearchPanel";
 import { Tabs } from "./components/Tabs";
+import { NeuralBackdrop } from "./components/NeuralBackdrop";
+import { CommandBar } from "./components/CommandBar";
+import { MetricOrb } from "./components/MetricOrb";
+import { LifecycleRing } from "./components/LifecycleRing";
+import { MemoryStream } from "./components/MemoryStream";
 import { Auth } from "./Auth";
 import type { AgentConfig, MemoryRecord, StatsResponse, TabId } from "./types";
 
@@ -52,7 +56,6 @@ export default function App() {
   // Listen for color changes from sidebar (storage event fires in other tabs)
   useEffect(() => {
     const handler = () => {
-      // Force re-render to pick up new colors via CSS vars
       setRefreshToken((v) => v + 1);
     };
     window.addEventListener("storage", handler);
@@ -118,10 +121,6 @@ export default function App() {
   }, [selectedMemory]);
 
   const selectedStats = stats[selectedAgent.workspaceId];
-  const typeSummary = useMemo(() => {
-    if (!selectedStats) return [];
-    return Object.entries(selectedStats.by_memory_type).filter(([, count]) => count > 0);
-  }, [selectedStats]);
 
   function refresh() {
     setRefreshToken((value) => value + 1);
@@ -129,19 +128,9 @@ export default function App() {
 
   return (
     <Auth>
+    <NeuralBackdrop />
     <div className="app">
-      <header className="app-header">
-        <div>
-          <h1>0Brain Dashboard</h1>
-          <p>Inspect Hermes and OpenClaw agent memories through the shared OB1 backend.</p>
-        </div>
-        <div className="header-stats">
-          <button className="menu-btn" onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle agents">☰</button>
-          <strong>{selectedAgent.name}</strong>
-          <span className="header-workspace">{selectedAgent.workspaceId}</span>
-          <span className="header-count">{selectedStats ? `${selectedStats.total} memories` : "loading"}</span>
-        </div>
-      </header>
+      <CommandBar agent={selectedAgent} stats={selectedStats} onRefresh={refresh} />
 
       <main className="main-layout">
         <AgentSidebar agents={AGENTS} selected={selectedAgent} stats={stats} open={sidebarOpen} onSelect={(agent) => {
@@ -156,14 +145,17 @@ export default function App() {
               <h2>{selectedAgent.name}</h2>
               <p>{selectedAgent.family} / {selectedAgent.provider}</p>
             </div>
-            <button className="btn-primary" onClick={refresh}>↻ Refresh</button>
           </div>
 
-          <div className="metric-row">
-            <Metric label="Total" value={selectedStats?.total ?? "..."} />
-            <Metric label="Unconfirmed" value={selectedStats?.unconfirmed ?? "..."} />
-            <Metric label="Instruction" value={selectedStats?.instruction_eligible ?? "..."} />
-            <Metric label="Types" value={typeSummary.map(([type, count]) => `${type}:${count}`).join(" / ") || "-"} />
+          <div className="ops-grid">
+            <div className="metric-orb-row">
+              <MetricOrb label="Total memory" value={selectedStats?.total} detail={selectedAgent.workspaceId} tone="info" />
+              <MetricOrb label="Review pressure" value={selectedStats?.unconfirmed} detail="unconfirmed" tone={(selectedStats?.unconfirmed || 0) > 0 ? "warn" : "good"} />
+              <MetricOrb label="Instruction ready" value={selectedStats?.instruction_eligible} detail="usable as instruction" tone="good" />
+              <MetricOrb label="Evidence ready" value={selectedStats?.evidence_eligible} detail="usable as evidence" tone="neutral" />
+            </div>
+
+            <LifecycleRing lifecycle={selectedStats?.by_lifecycle_status} review={selectedStats?.by_review_status} />
           </div>
 
           <Tabs active={activeTab} onChange={setActiveTab} />
@@ -171,10 +163,10 @@ export default function App() {
           {loading ? <div className="loading">Loading workspace memories...</div> : null}
 
           {activeTab === "memories" ? (
-            <MemoryTable memories={memories} selectedId={selectedMemory?.memory_id} onSelect={setSelectedMemory} />
+            <MemoryStream memories={memories} selectedId={selectedMemory?.memory_id} onSelect={setSelectedMemory} />
           ) : null}
           {activeTab === "review" ? (
-            <MemoryTable memories={memories} selectedId={selectedMemory?.memory_id} onSelect={setSelectedMemory} />
+            <MemoryStream memories={memories} selectedId={selectedMemory?.memory_id} onSelect={setSelectedMemory} />
           ) : null}
           {activeTab === "recall" ? (
             <SearchPanel agent={selectedAgent} onSelect={setSelectedMemory} />
@@ -188,15 +180,6 @@ export default function App() {
       </main>
     </div>
     </Auth>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
   );
 }
 

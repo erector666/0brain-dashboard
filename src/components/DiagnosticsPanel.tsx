@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchHealth, fetchMemories, fetchStats, runRecall } from "../api";
 import { FUNCTION_MAP } from "../functionMap";
+import { BrainMap } from "./BrainMap";
 import type { AgentConfig } from "../types";
 
 type CheckState = Record<string, string>;
@@ -45,22 +46,25 @@ export function DiagnosticsPanel({ agent }: { agent: AgentConfig }) {
   }, [agent.workspaceId]);
 
   return (
-    <div className="function-grid">
-      {FUNCTION_MAP.map((fn) => (
-        <div className="function-card" key={`${fn.method}-${fn.path}`}>
-          <div className="function-head">
-            <div className="function-head-left">
-              <strong>{fn.method} {fn.path}</strong>
+    <div className="diagnostics-layout">
+      <BrainMap checks={checks} />
+      <div className="function-grid">
+        {FUNCTION_MAP.map((fn) => (
+          <div className="function-card" key={`${fn.method}-${fn.path}`}>
+            <div className="function-head">
+              <div className="function-head-left">
+                <strong>{fn.method} {fn.path}</strong>
+              </div>
+              <span className="function-used-by">{fn.usedBy}</span>
             </div>
-            <span className="function-used-by">{fn.usedBy}</span>
+            <p className="function-purpose">{fn.purpose}</p>
+            <div className={`function-check ${fn.safeCheck ? "check-ok" : "check-muted"}`}>
+              <span className="check-icon">{fn.safeCheck ? "✓" : "○"}</span>
+              <span>{fn.safeCheck ? checks[fn.path] || "checking..." : "manual/safe-action only"}</span>
+            </div>
           </div>
-          <p className="function-purpose">{fn.purpose}</p>
-          <div className={`function-check ${fn.safeCheck ? "check-ok" : "check-muted"}`}>
-            <span className="check-icon">{fn.safeCheck ? "✓" : "○"}</span>
-            <span>{fn.safeCheck ? checks[fn.path] || "checking..." : "manual/safe-action only"}</span>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
