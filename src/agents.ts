@@ -1,13 +1,13 @@
 import type { AgentConfig } from "./types";
 
 const DEFAULT_COLORS: Record<string, string> = {
-  sam: "#6366f1",
-  tank: "#f59e0b",
-  lucifer: "#ef4444",
-  dean: "#3b82f6",
-  cass: "#10b981",
-  crowley: "#8b5cf6",
-  bobby: "#f97316",
+  sam: "#7c7ee0",
+  tank: "#c9953a",
+  lucifer: "#d96262",
+  dean: "#5d8fe0",
+  cass: "#2ea077",
+  crowley: "#957ae0",
+  bobby: "#d9863e",
 };
 
 export const AGENTS: AgentConfig[] = [

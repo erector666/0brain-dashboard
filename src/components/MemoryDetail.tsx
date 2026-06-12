@@ -4,10 +4,10 @@ import type { AgentConfig, MemoryRecord } from "../types";
 
 const reviewActions = [
   ["confirm", "Confirm"],
-  ["evidence_only", "Evidence"],
+  ["evidence_only", "Evidence Only"],
   ["reject", "Reject"],
-  ["mark_stale", "Stale"],
-  ["restrict_scope", "Restrict"]
+  ["mark_stale", "Mark Stale"],
+  ["restrict_scope", "Restrict Scope"]
 ] as const;
 
 export function MemoryDetail({
@@ -25,11 +25,13 @@ export function MemoryDetail({
   const [actionError, setActionError] = useState("");
   const [saving, setSaving] = useState(false);
   const [rawMetaOpen, setRawMetaOpen] = useState(false);
+  const [reviewMenuOpen, setReviewMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsEditing(false);
     setActionError("");
     setRawMetaOpen(false);
+    setReviewMenuOpen(false);
     setEditSummary(memory?.summary || "");
     setEditContent(memory?.content || "");
   }, [memory?.memory_id, memory?.summary, memory?.content]);
@@ -50,6 +52,7 @@ export function MemoryDetail({
 
   async function onDelete() {
     if (!memory) return;
+    setReviewMenuOpen(false);
     const confirmation = window.prompt(`Type ${memory.memory_id} to delete this memory.`);
     if (confirmation !== memory.memory_id) return;
     await runAction(() => deleteMemory(agent.workspaceId, memory.memory_id));
@@ -57,6 +60,7 @@ export function MemoryDetail({
 
   async function onReview(action: string) {
     if (!memory) return;
+    setReviewMenuOpen(false);
     await runAction(() => reviewMemory(memory.memory_id, action, `Dashboard action: ${action}`));
   }
 
@@ -91,11 +95,21 @@ export function MemoryDetail({
   const staleDate = memory.freshness?.stale_after;
   const confirmedAt = memory.freshness?.last_confirmed_at;
 
+  // Close review menu on click outside
+  useEffect(() => {
+    if (!reviewMenuOpen) return;
+    function handleClick() {
+      setReviewMenuOpen(false);
+    }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [reviewMenuOpen]);
+
   return (
     <aside className="detail-panel">
       <div className="panel-title">Memory Detail</div>
 
-      {/* Action bar */}
+      {/* Action bar — grouped */}
       <div className="detail-actions">
         {isEditing ? (
           <>
@@ -105,12 +119,33 @@ export function MemoryDetail({
             <button onClick={() => setIsEditing(false)} disabled={saving}>Cancel</button>
           </>
         ) : (
-          <button className="btn-primary" onClick={() => setIsEditing(true)} disabled={saving}>Edit</button>
+          <>
+            <button className="btn-primary" onClick={() => setIsEditing(true)} disabled={saving}>✏️ Edit</button>
+            <div className="detail-review-group">
+              <button
+                className="detail-review-trigger"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReviewMenuOpen((v) => !v);
+                }}
+                disabled={saving}
+              >
+                📋 Review ▾
+              </button>
+              {reviewMenuOpen ? (
+                <div className="detail-review-menu">
+                  {reviewActions.map(([action, label]) => (
+                    <button key={action} onClick={() => onReview(action)}>{label}</button>
+                  ))}
+                    <div style={{ borderTop: "1px solid var(--border-light)", margin: "4px 0" }} />
+                    <button className="btn-danger" onClick={onDelete} disabled={saving} style={{ border: "none", background: "transparent", width: "100%", textAlign: "left", padding: "6px 10px", fontSize: "12px", borderRadius: "var(--radius-sm)" }}>
+                      🗑️ Delete
+                    </button>
+                </div>
+              ) : null}
+            </div>
+          </>
         )}
-        {reviewActions.map(([action, label]) => (
-          <button key={action} className="btn-review" onClick={() => onReview(action)} disabled={saving}>{label}</button>
-        ))}
-        <button className="btn-danger" onClick={onDelete} disabled={saving}>Delete</button>
       </div>
 
       {actionError ? <div className="error">{actionError}</div> : null}
@@ -284,7 +319,7 @@ function TagList({ label, value }: { label: string; value: unknown }) {
       <span className="detail-meta-label">{label}</span>
       <div className="detail-meta-tags">
         {items.length
-          ? items.map((item) => <span key={item} className="detail-tag">{item}</span>)
+          ? items.map((item) => <span key={item} className="detail-tag" title={item}>{item}</span>)
           : <em className="detail-meta-empty">not extracted</em>
         }
       </div>

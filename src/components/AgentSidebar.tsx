@@ -4,27 +4,19 @@ import { useCustomAvatars } from "../hooks/useCustomAvatars";
 import type { AgentConfig, StatsResponse } from "../types";
 
 const DEFAULT_COLORS: Record<string, string> = {
-  sam: "#6366f1",
-  tank: "#f59e0b",
-  lucifer: "#ef4444",
-  dean: "#3b82f6",
-  cass: "#10b981",
-  crowley: "#8b5cf6",
-  bobby: "#f97316",
+  sam: "#7c7ee0",
+  tank: "#c9953a",
+  lucifer: "#d96262",
+  dean: "#5d8fe0",
+  cass: "#2ea077",
+  crowley: "#957ae0",
+  bobby: "#d9863e",
 };
 
 function getRuntimeIcon(agent: AgentConfig): string {
   if (agent.family === "OpenClaw") return "⛧";
   if (agent.family === "Hermes") return "🪶";
   return "◆";
-}
-
-function getContrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55 ? "#1a1a2e" : "#ffffff";
 }
 
 function groupAgentsByFamily(agents: AgentConfig[]) {
@@ -154,20 +146,28 @@ export function AgentSidebar({
                       </div>
                       <span className="agent-meta">{agent.family} / {agent.provider}</span>
                     </div>
+                    {/* Visible color swatch */}
+                    <div
+                      className="agent-color-swatch"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleColorClick(agent.id);
+                      }}
+                      title="Change accent color"
+                    />
+                    <input
+                      type="color"
+                      value={agentColor}
+                      ref={(el) => { colorInputs.current[agent.id] = el; }}
+                      style={{ display: "none" }}
+                      onChange={(e) => handleColorChange(agent.id, e.target.value)}
+                    />
                   </div>
                   <div className="agent-card-footer">
                     <span className="agent-count">{agentStats ? agentStats.total : "..."}</span>
                     <span className="agent-count-label">memories</span>
                     {warning ? <span className="badge warn">{warning}</span> : null}
                   </div>
-                  {/* Hidden color picker */}
-                  <input
-                    type="color"
-                    value={agentColor}
-                    ref={(el) => { colorInputs.current[agent.id] = el; }}
-                    style={{ display: "none" }}
-                    onChange={(e) => handleColorChange(agent.id, e.target.value)}
-                  />
                 </button>
               );
             })}
