@@ -10,11 +10,26 @@ const { requireAuth } = createServerClient();
 
 app.use(express.json({ limit: "1mb" }));
 
-// Auth check on all /api/* routes
+// Debug — no auth required
+app.get("/api/debug", (_req, res) => {
+  res.json({
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_KEY,
+    hasAllowedEmail: !!process.env.ALLOWED_EMAIL,
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV
+  });
+});
+
+// Auth check on all other /api/* routes
 app.use("/api", requireAuth);
 
 app.get("/api/config", (_req, res) => {
-  res.json({ apiBase: config.apiBase, hasApiKey: true });
+  res.json({
+    apiBase: config.apiBase,
+    hasApiKey: true,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_KEY,
+    hasAllowedEmail: !!process.env.ALLOWED_EMAIL
+  });
 });
 
 app.get("/api/ob1/health", async (_req, res) => {
