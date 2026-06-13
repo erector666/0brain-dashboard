@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { deleteMemory, editMemory, reviewMemory } from "../api";
 import type { AgentConfig, MemoryRecord } from "../types";
 import { FileText, Fingerprint, CalendarClock, Layers, Paperclip, Settings, Edit3, MoreVertical, Trash2, Check, X, AlertTriangle, Ban, EyeOff, Save, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 const reviewActions = [
   ["confirm", "Confirm", Check],
@@ -29,6 +30,8 @@ export function MemoryDetail({
   const [saving, setSaving] = useState(false);
   const [rawMetaOpen, setRawMetaOpen] = useState(false);
   const [reviewMenuOpen, setReviewMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsEditing(false);
@@ -39,18 +42,29 @@ export function MemoryDetail({
     setEditContent(memory?.content || "");
   }, [memory?.memory_id, memory?.summary, memory?.content]);
 
+  // Restore focus to trigger button when review menu closes
+  const prevOpen = useRef(reviewMenuOpen);
+  useEffect(() => {
+    if (prevOpen.current && !reviewMenuOpen) {
+      triggerRef.current?.focus();
+    }
+    prevOpen.current = reviewMenuOpen;
+  }, [reviewMenuOpen]);
+
   // Close review menu on click outside or Escape (capture phase to stay ahead of React synthetic events)
   useEffect(() => {
     if (!reviewMenuOpen) return;
-    const menuEl = document.querySelector(".detail-review-menu");
     function handleClick(e: MouseEvent) {
       // Only close if click target is outside the menu element
-      if (menuEl && !menuEl.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setReviewMenuOpen(false);
       }
     }
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setReviewMenuOpen(false);
+      if (e.key === "Escape") {
+        setReviewMenuOpen(false);
+        e.preventDefault();
+      }
     }
     document.addEventListener("click", handleClick, { capture: true });
     document.addEventListener("keydown", handleKey);
@@ -140,27 +154,39 @@ export function MemoryDetail({
             </button>
             <div className="detail-review-group">
               <button
+                ref={triggerRef}
                 className="detail-review-trigger"
                 onClick={() => setReviewMenuOpen((v) => !v)}
                 disabled={saving}
                 aria-haspopup="true"
                 aria-expanded={reviewMenuOpen}
+                tabIndex={0}
               >
                 <MoreVertical size={15} /> Actions
               </button>
-              {reviewMenuOpen ? (
-                <div className="detail-review-menu" role="menu">
-                  {reviewActions.map(([action, label, Icon]) => (
-                    <button key={action} onClick={() => onReview(action)} role="menuitem">
-                      <Icon size={13} /> {label}
-                    </button>
-                  ))}
-                    <div className="menu-separator" role="separator" />
-                    <button className="menu-item-delete" onClick={onDelete} disabled={saving} role="menuitem">
-                      <Trash2 size={13} /> Delete
-                    </button>
-                </div>
-              ) : null}
+              <AnimatePresence>
+                {reviewMenuOpen ? (
+                  <motion.div
+                    ref={menuRef}
+                    className="detail-review-menu open"
+                    role="menu"
+                    initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                    transition={{ duration: 0.12, ease: "easeOut" }}
+                  >
+                    {reviewActions.map(([action, label, Icon]) => (
+                      <button key={action} onClick={() => onReview(action)} role="menuitem">
+                        <Icon size={13} /> {label}
+                      </button>
+                    ))}
+                      <div className="menu-separator" role="separator" />
+                      <button className="menu-item-delete" onClick={onDelete} disabled={saving} role="menuitem">
+                        <Trash2 size={13} /> Delete
+                      </button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
           </>
         )}
