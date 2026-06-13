@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import type { TabId } from "../types";
 
 const tabs: Array<{ id: TabId; label: string }> = [
@@ -11,9 +12,25 @@ export function Tabs({ active, onChange }: { active: TabId; onChange: (tab: TabI
   return (
     <div className="tabs" role="tablist">
       {tabs.map((tab) => (
-        <button key={tab.id} className={active === tab.id ? "active" : ""} onClick={() => onChange(tab.id)} role="tab">
+        <motion.button
+          key={tab.id}
+          className={active === tab.id ? "active" : ""}
+          onClick={() => onChange(tab.id)}
+          role="tab"
+          aria-selected={active === tab.id}
+          whileHover={{ color: "var(--text-primary)" }}
+          whileTap={{ scale: 0.96 }}
+          layout
+        >
           {tab.label}
-        </button>
+          {active === tab.id ? (
+            <motion.div
+              className="tab-active-indicator"
+              layoutId="tab-indicator"
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            />
+          ) : null}
+        </motion.button>
       ))}
     </div>
   );

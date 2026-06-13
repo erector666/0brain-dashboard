@@ -12,3 +12,5 @@ supabase/config.toml
 supabase/.temp/
 
 .vercel
+screenshots/
+_ob1-source/

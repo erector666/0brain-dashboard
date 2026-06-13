@@ -7,9 +7,11 @@ import { MemoryStream } from "./MemoryStream";
 
 export function SearchPanel({
   agent,
+  selectedId,
   onSelect
 }: {
   agent: AgentConfig;
+  selectedId?: string;
   onSelect: (memory: MemoryRecord) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -36,7 +38,7 @@ export function SearchPanel({
     <div className="stack">
       <form className="toolbar" onSubmit={onSubmit}>
         <Search size={18} className="toolbar-search-icon" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Semantic search ${agent.workspaceId}`} />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Semantic search ${agent.workspaceId}`} aria-label="Search query" />
         <label className="checkbox">
           <input type="checkbox" checked={includeUnconfirmed} onChange={(event) => setIncludeUnconfirmed(event.target.checked)} />
           include unconfirmed
@@ -59,13 +61,13 @@ export function SearchPanel({
           ) : null}
         </AnimatePresence>
       </form>
-      {error ? <div className="error">{error}</div> : null}
+      {error ? <div className="error" role="alert">{error}</div> : null}
       {result ? (
         <div className="result-note">
           Request {result.request_id} / {result.memories.length} memories / {result.memories[0]?.retrieval?.strategy || "no retrieval"}
         </div>
       ) : null}
-      <MemoryStream memories={result?.memories || []} onSelect={onSelect} />
+      <MemoryStream memories={result?.memories || []} selectedId={selectedId} onSelect={onSelect} />
     </div>
   );
 }

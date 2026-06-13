@@ -1,38 +1,25 @@
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
 
 export function InspectorSection({
   icon,
-  heading,
-  children,
-  collapsible,
-  defaultOpen = false
+  title,
+  children
 }: {
   icon?: ReactNode;
-  heading: string;
-  children: ReactNode;
-  collapsible?: boolean;
-  defaultOpen?: boolean;
+  title?: string;
+  children?: ReactNode;
 }) {
   return (
-    <motion.section
-      className="detail-section"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 240, damping: 26 }}
-    >
-      <div className="detail-section-heading">
-        {icon ? <span className="detail-section-icon">{icon}</span> : null}
-        <h3>{heading}</h3>
+    <section className="detail-section">
+      {title ? (
+        <div className="detail-section-heading">
+          {icon ? <span className="detail-section-icon">{icon}</span> : null}
+          <h3>{title}</h3>
+        </div>
+      ) : null}
+      <div className="detail-content-block">
+        {children}
       </div>
-      {collapsible && !defaultOpen ? (
-        <details className="detail-collapsible">
-          <summary className="detail-collapse-summary">View details</summary>
-          <div className="detail-collapsible-body">{children}</div>
-        </details>
-      ) : (
-        children
-      )}
-    </motion.section>
+    </section>
   );
 }

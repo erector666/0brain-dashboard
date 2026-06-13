@@ -1,4 +1,24 @@
 /* ===== OB1 NeuroOps Console — Dark Operations CSS ===== */
+
+/* Skip link — visible on keyboard focus only */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.12s var(--ease-out);
+}
+.skip-link:focus {
+  top: 8px;
+}
 /* Visual language: dark ops, neon telemetry, glass panels, neural mesh.
    All data from real API. No fake numbers. No decorative-only motion. */
 
@@ -109,6 +129,7 @@ h4 {
   color: var(--text-tertiary);
 }
 p { margin: 0; }
+strong { font-weight: 600; }
 
 /* ===== Neural Backdrop ===== */
 .neural-backdrop {
@@ -301,23 +322,28 @@ button:focus-visible {
   cursor: pointer;
   box-shadow: 0 0 24px rgba(var(--agent-accent-rgb), 0.18);
 }
-.btn-primary:hover { opacity: 0.92; }
+.btn-primary:hover {
+  box-shadow: 0 0 40px rgba(var(--agent-accent-rgb), 0.4);
+  border-color: var(--border-hot);
+  background: linear-gradient(135deg, rgba(var(--agent-accent-rgb), 1), rgba(96, 165, 250, 0.95));
+}
 
 .btn-danger {
   color: var(--bad) !important;
 }
 
-/* ===== 3-Column Layout ===== */
+/* ===== 2-Column Layout =====
+   Detail panel is rendered as a portal overlay (createPortal) on all breakpoints,
+   so the grid only needs sidebar + workspace. The 3rd column was always empty. */
 .main-layout {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 284px minmax(0, 1fr) 420px;
+  grid-template-columns: 284px minmax(0, 1fr);
 }
 
 .sidebar-panel,
-.workspace-panel,
-.detail-panel {
+.workspace-panel {
   min-height: 0;
   overflow: auto;
 }
@@ -333,6 +359,8 @@ button:focus-visible {
   padding: 18px;
 }
 
+/* detail-panel class is only used by MemoryDetail which renders inside the portal drawer,
+   not as a direct grid child. Keep styles for portal context. */
 .detail-panel {
   border-left: 1px solid var(--border-subtle);
   background: rgba(5, 9, 18, 0.74);
@@ -356,7 +384,7 @@ button:focus-visible {
     rgba(15, 23, 42, 0.58);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: var(--space-8, 32px) var(--space-6, 24px);
+  padding: 32px 24px;
   text-align: center;
   max-width: 360px;
   width: 100%;
@@ -395,6 +423,25 @@ button:focus-visible {
   position: relative;
 }
 .google-btn:hover { border-color: var(--border-hot); box-shadow: var(--shadow-glow); }
+.google-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+
+.authenticated-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.authenticated-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.authenticated-content > .app {
+  flex: 1;
+  min-height: 0;
+}
 
 .auth-bar {
   display: flex;
@@ -407,9 +454,16 @@ button:focus-visible {
   background: rgba(5, 9, 18, 0.82);
   border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
-  position: relative;
-  z-index: 2;
+  overflow: hidden;
 }
+
+.auth-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
 .logout-btn { font-size: 11px; padding: 1px 8px; }
 
 .menu-btn {
@@ -417,6 +471,22 @@ button:focus-visible {
   font-size: 20px;
   padding: 4px 8px;
   line-height: 1;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out);
+}
+.menu-btn:hover {
+  border-color: var(--border-hot);
+}
+
+.sidebar-close-btn {
+  display: none;
 }
 
 /* ===== Sidebar ===== */
@@ -443,6 +513,32 @@ button:focus-visible {
   letter-spacing: 0.12em;
   font-size: 10px;
   font-weight: 800;
+}
+
+.sidebar-error {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(251, 113, 133, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(251, 113, 133, 0.08);
+  color: var(--bad);
+  font-size: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.sidebar-error-dismiss {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--bad);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 2px;
+  line-height: 1;
 }
 
 .avatar-toggle {
@@ -511,23 +607,72 @@ button:focus-visible {
 
 .agent-avatar-wrapper {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   flex: 0 0 auto;
 }
 
-.agent-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 15px;
+.agent-avatar-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
   background: rgba(255, 255, 255, 0.06);
 }
 
+.agent-avatar-custom {
+  box-shadow: 0 0 0 2px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.3);
+}
+
+.agent-avatar-fallback {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.25);
+  color: white;
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+.agent-avatar-fallback-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.25);
+  color: white;
+  font-weight: 600;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.agent-avatar-md {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.agent-avatar-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.3);
+}
+
 .agent-avatar-ring {
   position: absolute;
-  inset: -4px;
-  border: 1px solid rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.55);
+  inset: -3px;
+  border: 1px solid rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.45);
   border-radius: 18px;
   animation: ob1-pulse 3.4s infinite;
 }
@@ -627,6 +772,7 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+  gap: 12px;
 }
 
 .workspace-head h2 {
@@ -640,6 +786,8 @@ button:focus-visible {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
   font-size: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* ===== Ops Grid ===== */
@@ -805,6 +953,7 @@ button:focus-visible {
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.42);
   width: fit-content;
+  position: relative;
 }
 
 .tabs button {
@@ -816,12 +965,23 @@ button:focus-visible {
   cursor: pointer;
   font-weight: 500;
   font-size: 12px;
+  position: relative;
 }
 
 .tabs button.active {
   color: white;
   background: rgba(var(--agent-accent-rgb), 0.22);
   box-shadow: inset 0 0 0 1px rgba(var(--agent-accent-rgb), 0.32);
+}
+
+.tab-active-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
 }
 
 /* ===== Checkbox ===== */
@@ -909,7 +1069,7 @@ button:focus-visible {
 }
 .empty-cell {
   color: var(--text-muted);
-  padding: var(--space-8, 32px) var(--space-4, 16px);
+  padding: 32px 16px;
   text-align: center;
   font-style: italic;
   font-size: 13px;
@@ -941,6 +1101,34 @@ button:focus-visible {
 .memory-card.selected {
   border-color: var(--border-hot);
   box-shadow: var(--shadow-glow);
+}
+
+/* Tone-coded memory card indicator — reflects lifecycle status.
+   Uses box-shadow to avoid conflict with the card's border shorthand. */
+.tone-good {
+  box-shadow: inset 3px 0 0 var(--good);
+}
+.tone-warn {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.tone-bad {
+  box-shadow: inset 3px 0 0 var(--bad);
+}
+.tone-info {
+  box-shadow: inset 3px 0 0 var(--info);
+}
+.tone-neutral {
+  box-shadow: inset 3px 0 0 var(--neutral);
+}
+
+.memory-action-icon {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+  transition: opacity 0.15s var(--ease-out);
+}
+.memory-card:hover .memory-action-icon {
+  opacity: 1;
+  color: var(--agent-accent);
 }
 
 .memory-card-left {
@@ -1072,18 +1260,89 @@ button:focus-visible {
   border-color: rgba(96, 165, 250, 0.3);
 }
 
+/* ===== Detail Modal (createPortal) ===== */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.detail-drawer {
+  position: relative;
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  background: var(--bg-page-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 60px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(var(--agent-accent-rgb), 0.15);
+  padding: 14px 14px 32px;
+  animation: detail-fade-in 0.18s var(--ease-out);
+}
+
+@keyframes detail-fade-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.detail-drawer-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 10;
+}
+.detail-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-tertiary);
+}
+
+@media (max-width: 768px) {
+  .detail-overlay {
+    align-items: flex-end;
+  }
+  .detail-drawer {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-bottom: none;
+    box-shadow: 0 -8px 60px rgba(0, 0, 0, 0.5);
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    animation: detail-slide-up 0.2s var(--ease-out);
+  }
+  @keyframes detail-slide-up {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 /* ===== Detail Panel ===== */
 .detail-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8, 32px) var(--space-4, 16px);
+  padding: 32px 16px;
   text-align: center;
   color: var(--text-tertiary);
 }
 .detail-empty-icon {
-  margin-bottom: var(--space-3, 12px);
+  margin-bottom: 12px;
   opacity: 0.3;
   line-height: 1;
 }
@@ -1097,9 +1356,9 @@ button:focus-visible {
 .detail-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1, 4px);
-  margin-bottom: var(--space-3, 12px);
-  padding-bottom: var(--space-3, 12px);
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1113,33 +1372,48 @@ button:focus-visible {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  z-index: 50;
+  z-index: 210;
   background: rgba(11, 16, 29, 0.96);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-1, 4px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  padding: 4px;
   min-width: 150px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow: hidden;
 }
-.detail-review-menu button {
+.detail-review-menu button,
+.detail-review-menu .menu-item-delete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   border: none;
   background: transparent;
   width: 100%;
   text-align: left;
-  padding: 6px 10px;
+  padding: 7px 10px;
   font-size: 12px;
   font-weight: 500;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.12s var(--ease-out);
 }
 .detail-review-menu button:hover { background: var(--bg-hover); color: var(--text-primary); }
+.detail-review-menu .menu-item-delete {
+  color: var(--bad);
+}
+.detail-review-menu .menu-item-delete:hover {
+  background: rgba(251, 113, 133, 0.12);
+  color: var(--bad);
+}
 .menu-separator {
+  height: 1px;
+  margin: 3px 0;
+  background: var(--border-subtle);
   border: none;
-  border-top: 1px solid var(--border-subtle);
-  margin: var(--space-1, 4px) 0;
 }
 
 .detail-section {
@@ -1205,10 +1479,10 @@ button:focus-visible {
   max-width: 100%;
 }
 
-.edit-form { display: grid; gap: var(--space-2, 8px); }
+.edit-form { display: grid; gap: 8px; }
 .edit-form label {
   display: grid;
-  gap: var(--space-1, 4px);
+  gap: 4px;
   color: var(--text-secondary);
   font-weight: 600;
   font-size: 12px;
@@ -1425,7 +1699,7 @@ button:focus-visible {
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: var(--space-1, 4px);
+  margin-bottom: 4px;
 }
 .function-head strong {
   font-family: var(--font-mono);
@@ -1448,7 +1722,7 @@ button:focus-visible {
 .function-purpose {
   color: var(--text-secondary);
   font-size: 12px;
-  margin-bottom: var(--space-2, 8px);
+  margin-bottom: 8px;
   line-height: 1.5;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1593,10 +1867,6 @@ button:focus-visible {
     grid-template-columns: 260px minmax(0, 1fr);
   }
 
-  .detail-panel {
-    display: none;
-  }
-
   .ops-grid {
     grid-template-columns: 1fr;
   }
@@ -1611,20 +1881,32 @@ button:focus-visible {
     overflow: auto;
   }
 
-  .command-bar,
-  .command-status {
+  .command-bar {
     height: auto;
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .command-bar {
     padding: 16px;
     gap: 14px;
   }
 
+  .command-status {
+    height: auto;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
   .command-chip {
     width: 100%;
+  }
+
+  .brand-lockup {
+    max-width: 100%;
+  }
+  .brand-lockup > div:last-child {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .main-layout {
@@ -1652,7 +1934,6 @@ button:focus-visible {
     z-index: 99;
   }
 
-  .sidebar-panel,
   .workspace-panel {
     overflow: visible;
   }
@@ -1697,10 +1978,45 @@ button:focus-visible {
   .memory-table td:nth-child(3) { min-width: 130px; }
   .memory-table th, .memory-table td { padding: 8px 6px; }
 
+  .menu-btn {
+    display: grid;
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .sidebar-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-tertiary);
+  }
+  .sidebar-panel .sidebar-title {
+    padding-right: 40px;
+  }
+  .lifecycle-body {
+    grid-template-columns: 1fr;
+  }
+  .workspace-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
   .detail-dl-row { grid-template-columns: 1fr; gap: 2px; }
   .detail-meta-item { grid-template-columns: 1fr; gap: 3px; }
-
-  .workspace-panel { padding: var(--space-3, 12px) var(--space-4, 16px); }
+  .workspace-panel { padding: 12px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { motion } from "motion/react";
 import { warningForAgent } from "../agents";
 import { useCustomAvatars } from "../hooks/useCustomAvatars";
 import type { AgentConfig, StatsResponse } from "../types";
@@ -43,19 +44,26 @@ function groupAgentsByFamily(agents: AgentConfig[]) {
 
 export function AgentSidebar({
   agents,
+  agentIds,
   selected,
   stats,
   open,
-  onSelect
+  onSelect,
+  onClose,
+  onAvatarChange
 }: {
   agents: AgentConfig[];
+  agentIds: string[];
   selected: AgentConfig;
   stats: Record<string, StatsResponse | undefined>;
   open: boolean;
   onSelect: (agent: AgentConfig) => void;
+  onClose: () => void;
+  onAvatarChange?: () => void;
 }) {
   const [showAvatars, setShowAvatars] = useState(true);
-  const { getCustomAvatar, setCustomAvatar, getAgentColor, setAgentColor } = useCustomAvatars(DEFAULT_COLORS);
+  const { getCustomAvatar, setCustomAvatar, getAgentColor, setAgentColor, avatarError, setAvatarError } =
+    useCustomAvatars(DEFAULT_COLORS, agentIds);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const colorInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -66,6 +74,9 @@ export function AgentSidebar({
   const handleFileChange = async (agentId: string, file: File | null) => {
     if (!file) return;
     await setCustomAvatar(agentId, file);
+    const input = fileInputs.current[agentId];
+    if (input) input.value = "";
+    onAvatarChange?.();
   };
 
   const handleColorClick = (agentId: string) => {
@@ -78,19 +89,25 @@ export function AgentSidebar({
 
   return (
     <>
-      {open ? <div className="sidebar-overlay" onClick={() => onSelect(selected)} /> : null}
-      <aside className={`sidebar-panel${open ? " open" : ""}`}>
+      {open ? <div className="sidebar-overlay" onClick={onClose} /> : null}
+      <aside className={`sidebar-panel${open ? " open" : ""}`} aria-label="Agent sidebar">
         <div className="sidebar-title">
           <span>Agents</span>
           <label className="avatar-toggle">
-            <input
-              type="checkbox"
-              checked={showAvatars}
-              onChange={(e) => setShowAvatars(e.target.checked)}
-            />
+            <input type="checkbox" checked={showAvatars} onChange={(e) => setShowAvatars(e.target.checked)} />
             <span>Avatars</span>
           </label>
         </div>
+
+        {avatarError ? (
+          <div className="sidebar-error">
+            {avatarError}
+            <button className="sidebar-error-dismiss" onClick={() => setAvatarError("")} aria-label="Dismiss">✕</button>
+          </div>
+        ) : null}
+
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close sidebar">✕</button>
+
         {groupAgentsByFamily(agents).map((group) => (
           <div key={group.family} className="agent-group">
             <div className="agent-group-label">{group.family}</div>
@@ -104,7 +121,7 @@ export function AgentSidebar({
               const runtimeIcon = getRuntimeIcon(agent);
 
               return (
-                <button
+                <motion.button
                   key={agent.workspaceId}
                   className={`agent-card ${isSelected ? "selected" : ""}`}
                   onClick={() => onSelect(agent)}
@@ -112,22 +129,44 @@ export function AgentSidebar({
                     "--agent-color": agentColor,
                     "--agent-color-rgb": hexToRgb(agentColor),
                   } as React.CSSProperties}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 24 }}
                 >
                   <div className="agent-card-header">
-                    {showAvatars && avatarSrc && (
+                    {showAvatars ? (
                       <>
                         <div
                           className="agent-avatar-wrapper"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAvatarClick(agent.id);
+                          onClick={(e) => { e.stopPropagation(); handleAvatarClick(agent.id); }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.stopPropagation();
+                              handleAvatarClick(agent.id);
+                            }
                           }}
+                          role="button"
+                          tabIndex={0}
+                          title="Click to change avatar"
                         >
-                          <img
-                            src={avatarSrc}
-                            alt=""
-                            className={`agent-avatar ${customAvatar ? "agent-avatar-custom" : ""}`}
-                          />
+                          {avatarSrc ? (
+                            <img
+                              src={avatarSrc}
+                              alt={agent.name}
+                              loading="lazy"
+                              className={`agent-avatar-img ${customAvatar ? "agent-avatar-custom" : ""}`}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                                const fb = (e.target as HTMLImageElement).parentElement?.querySelector(".agent-avatar-fallback");
+                                if (fb) (fb as HTMLElement).style.display = "grid";
+                              }}
+                            />
+                          ) : null}
+                          <div className="agent-avatar-fallback" style={{ display: avatarSrc ? "none" : "grid" }}>
+                            {agent.name.charAt(0)}
+                          </div>
                           <div className="agent-avatar-ring" />
                         </div>
                         <input
@@ -138,7 +177,7 @@ export function AgentSidebar({
                           onChange={(e) => handleFileChange(agent.id, e.target.files?.[0] ?? null)}
                         />
                       </>
-                    )}
+                    ) : null}
                     <div className="agent-card-info">
                       <div className="agent-card-name-row">
                         <span className="agent-name">{agent.name}</span>
@@ -146,13 +185,17 @@ export function AgentSidebar({
                       </div>
                       <span className="agent-meta">{agent.family} / {agent.provider}</span>
                     </div>
-                    {/* Visible color swatch */}
                     <div
                       className="agent-color-swatch"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleColorClick(agent.id);
+                      onClick={(e) => { e.stopPropagation(); handleColorClick(agent.id); }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          handleColorClick(agent.id);
+                        }
                       }}
+                      role="button"
+                      tabIndex={0}
                       title="Change accent color"
                     />
                     <input
@@ -168,7 +211,7 @@ export function AgentSidebar({
                     <span className="agent-count-label">memories</span>
                     {warning ? <span className="badge warn">{warning}</span> : null}
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>

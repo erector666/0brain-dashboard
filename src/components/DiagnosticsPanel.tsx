@@ -37,6 +37,14 @@ export function DiagnosticsPanel({ agent }: { agent: AgentConfig }) {
       } catch {
         next["/recall"] = "failed";
       }
+      try {
+        const reviewParams = new URLSearchParams({ workspace_id: agent.workspaceId });
+        const reviewResponse = await fetch(`/api/ob1/memories/review?${reviewParams}`);
+        const reviewData = await reviewResponse.json();
+        next["/memories/review"] = reviewData.memories ? `${reviewData.memories.length} pending` : "ok";
+      } catch {
+        next["/memories/review"] = "failed";
+      }
       if (!cancelled) setChecks(next);
     }
     runChecks();

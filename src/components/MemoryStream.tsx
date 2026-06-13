@@ -38,10 +38,11 @@ export function MemoryStream({
             key={memory.memory_id}
             className={`memory-card ${selected ? "selected" : ""} tone-${statusTone(lifecycle)}`}
             onClick={() => onSelect(memory)}
-            initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
+            initial={false}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.97 }}
             transition={{ delay: Math.min(index * 0.025, 0.25), type: "spring", stiffness: 240, damping: 26 }}
-            layout
           >
             <div className="memory-card-left">
               <div className="memory-type-icon">

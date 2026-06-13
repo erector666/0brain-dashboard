@@ -1,4 +1,4 @@
-import { Activity, BrainCircuit, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Activity, BrainCircuit, Menu, RefreshCw, ShieldCheck, TriangleAlert } from "lucide-react";
 import { motion } from "motion/react";
 import type { AgentConfig, StatsResponse } from "../types";
 import { compactNumber } from "../lib/ui";
@@ -6,11 +6,17 @@ import { compactNumber } from "../lib/ui";
 export function CommandBar({
   agent,
   stats,
-  onRefresh
+  healthOnline,
+  lastRefresh,
+  onRefresh,
+  onMenuToggle
 }: {
   agent: AgentConfig;
   stats?: StatsResponse;
+  healthOnline?: boolean | null;
+  lastRefresh?: Date | null;
   onRefresh: () => void;
+  onMenuToggle?: () => void;
 }) {
   const hasPressure = Boolean(stats && stats.unconfirmed > 0);
 
@@ -22,6 +28,11 @@ export function CommandBar({
       transition={{ type: "spring", stiffness: 260, damping: 28 }}
     >
       <div className="brand-lockup">
+        {onMenuToggle ? (
+          <button className="menu-btn" onClick={onMenuToggle} aria-label="Toggle sidebar">
+            <Menu size={20} />
+          </button>
+        ) : null}
         <div className="brand-mark">
           <BrainCircuit size={22} />
           <span className="brand-pulse" />

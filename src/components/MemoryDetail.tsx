@@ -14,11 +14,13 @@ const reviewActions = [
 export function MemoryDetail({
   agent,
   memory,
-  onChanged
+  onChanged,
+  embedded
 }: {
   agent: AgentConfig;
   memory?: MemoryRecord | null;
   onChanged: () => void;
+  embedded?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editSummary, setEditSummary] = useState("");
@@ -37,25 +39,36 @@ export function MemoryDetail({
     setEditContent(memory?.content || "");
   }, [memory?.memory_id, memory?.summary, memory?.content]);
 
-  // Close review menu on click outside (MUST be before early return to keep hook order consistent)
+  // Close review menu on click outside or Escape (capture phase to stay ahead of React synthetic events)
   useEffect(() => {
     if (!reviewMenuOpen) return;
-    function handleClick() {
-      setReviewMenuOpen(false);
+    const menuEl = document.querySelector(".detail-review-menu");
+    function handleClick(e: MouseEvent) {
+      // Only close if click target is outside the menu element
+      if (menuEl && !menuEl.contains(e.target as Node)) {
+        setReviewMenuOpen(false);
+      }
     }
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setReviewMenuOpen(false);
+    }
+    document.addEventListener("click", handleClick, { capture: true });
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("click", handleClick, { capture: true });
+      document.removeEventListener("keydown", handleKey);
+    };
   }, [reviewMenuOpen]);
 
   if (!memory) {
     return (
-      <aside className="detail-panel">
+      <div className="detail-panel" role="region" aria-label="Memory inspector (empty)">
         <div className="panel-title">Memory Inspector</div>
         <div className="detail-empty-state">
           <div className="detail-empty-icon"><FileText size={40} /></div>
           <p>Select a memory to inspect content, metadata, source refs, and review state.</p>
         </div>
-      </aside>
+      </div>
     );
   }
 
@@ -107,7 +120,7 @@ export function MemoryDetail({
   const confirmedAt = memory.freshness?.last_confirmed_at;
 
   return (
-    <aside className="detail-panel">
+    <div className="detail-panel" role="region" aria-label="Memory inspector">
       <div className="panel-title">Memory Inspector</div>
 
       {/* Action bar — grouped */}
@@ -128,23 +141,22 @@ export function MemoryDetail({
             <div className="detail-review-group">
               <button
                 className="detail-review-trigger"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setReviewMenuOpen((v) => !v);
-                }}
+                onClick={() => setReviewMenuOpen((v) => !v)}
                 disabled={saving}
+                aria-haspopup="true"
+                aria-expanded={reviewMenuOpen}
               >
-                <MoreVertical size={15} /> Actions ▾
+                <MoreVertical size={15} /> Actions
               </button>
               {reviewMenuOpen ? (
-                <div className="detail-review-menu">
+                <div className="detail-review-menu" role="menu">
                   {reviewActions.map(([action, label, Icon]) => (
-                    <button key={action} onClick={() => onReview(action)}>
+                    <button key={action} onClick={() => onReview(action)} role="menuitem">
                       <Icon size={13} /> {label}
                     </button>
                   ))}
-                    <div className="menu-separator" />
-                    <button className="btn-danger" onClick={onDelete} disabled={saving} style={{ border: "none", background: "transparent", width: "100%", textAlign: "left", padding: "6px 10px", fontSize: "12px", borderRadius: "var(--radius-sm)" }}>
+                    <div className="menu-separator" role="separator" />
+                    <button className="menu-item-delete" onClick={onDelete} disabled={saving} role="menuitem">
                       <Trash2 size={13} /> Delete
                     </button>
                 </div>
@@ -154,7 +166,7 @@ export function MemoryDetail({
         )}
       </div>
 
-      {actionError ? <div className="error">{actionError}</div> : null}
+      {actionError ? <div className="error" role="alert">{actionError}</div> : null}
 
       {/* Content section */}
       <section className="detail-section">
@@ -314,7 +326,7 @@ export function MemoryDetail({
           <p className="detail-hint">Click <strong>Show</strong> to view raw metadata JSON.</p>
         )}
       </section>
-    </aside>
+    </div>
   );
 }
 

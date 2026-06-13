@@ -1,5 +1,5 @@
-import { Activity, Database, GitBranch, HeartPulse, RotateCw, Search, ShieldCheck, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
+import { Activity, Database, GitBranch, HeartPulse, RotateCw, Search, ShieldCheck, Trash2 } from "lucide-react";
 
 const nodes = [
   { id: "health", label: "/health", icon: HeartPulse, x: 8, y: 42 },
@@ -34,7 +34,11 @@ export function BrainMap({ checks }: { checks: Record<string, string> }) {
     "/health": checks["/health"],
     "/stats": checks["/stats"],
     "/memories": checks["/memories"],
-    "/recall": checks["/recall"]
+    "/recall": checks["/recall"],
+    "/review": checks["/memories/review"],
+    "/delete": checks["/delete"],
+    "/traces": checks["/traces"],
+    "/reembed": checks["/reembed"]
   };
 
   return (
@@ -58,7 +62,7 @@ export function BrainMap({ checks }: { checks: Record<string, string> }) {
                 className="brain-link"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 1.4, repeat: Infinity, repeatType: "reverse" }}
+                transition={{ duration: 1.4 }}
               />
             );
           })}
