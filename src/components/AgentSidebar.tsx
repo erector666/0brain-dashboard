@@ -1,24 +1,27 @@
 import { useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { warningForAgent } from "../agents";
 import { useCustomAvatars } from "../hooks/useCustomAvatars";
+import { Database, Activity, Shield, type LucideIcon } from "lucide-react";
 import type { AgentConfig, StatsResponse } from "../types";
 
-const DEFAULT_COLORS: Record<string, string> = {
-  sam: "#7c7ee0",
-  tank: "#c9953a",
-  lucifer: "#d96262",
-  dean: "#5d8fe0",
-  cass: "#2ea077",
-  crowley: "#957ae0",
-  bobby: "#d9863e",
+const FAMILY_ICONS: Record<string, string> = {
+  OpenClaw: "⛧",
+  Hermes: "🪶",
 };
 
-function getRuntimeIcon(agent: AgentConfig): string {
-  if (agent.family === "OpenClaw") return "⛧";
-  if (agent.family === "Hermes") return "🪶";
-  return "◆";
+function getFamilyIcon(agent: AgentConfig): string {
+  return FAMILY_ICONS[agent.family] || "◆";
 }
+
+/** Label + value pair, same pattern as the flight card InfoItem */
+const InfoItem = ({ label, value, icon: Icon }: { label: string; value: string; icon?: LucideIcon }) => (
+  <div className="agent-info-item">
+    {Icon && <Icon size={12} className="agent-info-icon" />}
+    <span className="agent-info-value">{value}</span>
+    <span className="agent-info-label">{label}</span>
+  </div>
+);
 
 function groupAgentsByFamily(agents: AgentConfig[]) {
   const groups: { family: string; agents: AgentConfig[] }[] = [];
@@ -42,6 +45,20 @@ function groupAgentsByFamily(agents: AgentConfig[]) {
   return groups;
 }
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, when: "beforeChildren", staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+};
+
 export function AgentSidebar({
   agents,
   agentIds,
@@ -50,7 +67,7 @@ export function AgentSidebar({
   open,
   onSelect,
   onClose,
-  onAvatarChange
+  onAvatarChange,
 }: {
   agents: AgentConfig[];
   agentIds: string[];
@@ -63,7 +80,10 @@ export function AgentSidebar({
 }) {
   const [showAvatars, setShowAvatars] = useState(true);
   const { getCustomAvatar, setCustomAvatar, getAgentColor, setAgentColor, avatarError, setAvatarError } =
-    useCustomAvatars(DEFAULT_COLORS, agentIds);
+    useCustomAvatars(
+      Object.fromEntries(agentIds.map((id) => [id, id === "sam" ? "#7c7ee0" : id === "tank" ? "#c9953a" : id === "lucifer" ? "#d96262" : id === "dean" ? "#5d8fe0" : id === "cass" ? "#2ea077" : id === "crowley" ? "#957ae0" : id === "bobby" ? "#d9863e" : "#6366f1"])),
+      agentIds
+    );
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const colorInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -116,9 +136,8 @@ export function AgentSidebar({
               const warning = warningForAgent(agent, agentStats?.total);
               const customAvatar = getCustomAvatar(agent.id);
               const avatarSrc = customAvatar || agent.avatar;
-              const agentColor = getAgentColor(agent.id) || DEFAULT_COLORS[agent.id] || "#6366f1";
+              const agentColor = getAgentColor(agent.id) || (agent.id === "sam" ? "#7c7ee0" : agent.id === "tank" ? "#c9953a" : agent.id === "lucifer" ? "#d96262" : agent.id === "dean" ? "#5d8fe0" : agent.id === "cass" ? "#2ea077" : agent.id === "crowley" ? "#957ae0" : agent.id === "bobby" ? "#d9863e" : "#6366f1");
               const isSelected = selected.workspaceId === agent.workspaceId;
-              const runtimeIcon = getRuntimeIcon(agent);
 
               return (
                 <motion.button
@@ -129,62 +148,85 @@ export function AgentSidebar({
                     "--agent-color": agentColor,
                     "--agent-color-rgb": hexToRgb(agentColor),
                   } as React.CSSProperties}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ scale: 1.015 }}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={{ scale: 1.02, transition: { duration: 0.25 } }}
                   whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 24 }}
                 >
-                  <div className="agent-card-header">
+                  {/* Agent image / avatar header */}
+                  <div className="agent-card-image" style={{ backgroundColor: `${agentColor}22` }}>
                     {showAvatars ? (
-                      <>
-                        <div
-                          className="agent-avatar-wrapper"
-                          onClick={(e) => { e.stopPropagation(); handleAvatarClick(agent.id); }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.stopPropagation();
-                              handleAvatarClick(agent.id);
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          title="Click to change avatar"
-                        >
-                          {avatarSrc ? (
-                            <img
-                              src={avatarSrc}
-                              alt={agent.name}
-                              loading="lazy"
-                              className={`agent-avatar-img ${customAvatar ? "agent-avatar-custom" : ""}`}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                                const fb = (e.target as HTMLImageElement).parentElement?.querySelector(".agent-avatar-fallback");
-                                if (fb) (fb as HTMLElement).style.display = "grid";
-                              }}
-                            />
-                          ) : null}
-                          <div className="agent-avatar-fallback" style={{ display: avatarSrc ? "none" : "grid" }}>
-                            {agent.name.charAt(0)}
-                          </div>
-                          <div className="agent-avatar-ring" />
+                      <div
+                        className="agent-avatar-wrapper"
+                        onClick={(e) => { e.stopPropagation(); handleAvatarClick(agent.id); }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            handleAvatarClick(agent.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        title="Click to change avatar"
+                      >
+                        {avatarSrc ? (
+                          <img
+                            src={avatarSrc}
+                            alt={agent.name}
+                            loading="lazy"
+                            className={`agent-avatar-img ${customAvatar ? "agent-avatar-custom" : ""}`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                              const fb = (e.target as HTMLImageElement).parentElement?.querySelector(".agent-avatar-fallback");
+                              if (fb) (fb as HTMLElement).style.display = "grid";
+                            }}
+                          />
+                        ) : null}
+                        <div className="agent-avatar-fallback" style={{ display: avatarSrc ? "none" : "grid" }}>
+                          {agent.name.charAt(0)}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          ref={(el) => { fileInputs.current[agent.id] = el; }}
-                          style={{ display: "none" }}
-                          onChange={(e) => handleFileChange(agent.id, e.target.files?.[0] ?? null)}
-                        />
-                      </>
-                    ) : null}
-                    <div className="agent-card-info">
-                      <div className="agent-card-name-row">
-                        <span className="agent-name">{agent.name}</span>
-                        <span className="agent-runtime-icon" title={agent.family}>{runtimeIcon}</span>
+                        <div className="agent-avatar-ring" />
                       </div>
-                      <span className="agent-meta">{agent.family} / {agent.provider}</span>
-                    </div>
+                    ) : null}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={(el) => { fileInputs.current[agent.id] = el; }}
+                      style={{ display: "none" }}
+                      onChange={(e) => handleFileChange(agent.id, e.target.files?.[0] ?? null)}
+                    />
+                  </div>
+
+                  {/* Details */}
+                  <div className="agent-card-body">
+                    <motion.div variants={itemVariants} className="agent-card-route">
+                      <div className="agent-card-origin">
+                        <span className="agent-card-primary">{agent.name}</span>
+                        <span className="agent-card-sub">{agent.family}</span>
+                      </div>
+                      <div className="agent-card-connector">
+                        <span className="agent-card-code">{getFamilyIcon(agent)}</span>
+                      </div>
+                      <div className="agent-card-dest">
+                        <span className="agent-card-primary">{agentStats ? agentStats.total : "..."}</span>
+                        <span className="agent-card-sub">memories</span>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="agent-card-divider" />
+
+                    <motion.div variants={itemVariants} className="agent-card-info-row">
+                      <InfoItem label="Provider" value={agent.provider === "ob1-agent-memory" ? "OB1" : "0Brain"} icon={Database} />
+                      <InfoItem label="Workspace" value={agent.workspaceId.replace("agent-", "")} icon={Activity} />
+                      <InfoItem
+                        label="Status"
+                        value={warning ? warning : agentStats && agentStats.total > 0 ? "active" : "idle"}
+                        icon={Shield}
+                      />
+                    </motion.div>
+
+                    {/* Color picker */}
                     <div
                       className="agent-color-swatch"
                       onClick={(e) => { e.stopPropagation(); handleColorClick(agent.id); }}
@@ -205,11 +247,6 @@ export function AgentSidebar({
                       style={{ display: "none" }}
                       onChange={(e) => handleColorChange(agent.id, e.target.value)}
                     />
-                  </div>
-                  <div className="agent-card-footer">
-                    <span className="agent-count">{agentStats ? agentStats.total : "..."}</span>
-                    <span className="agent-count-label">memories</span>
-                    {warning ? <span className="badge warn">{warning}</span> : null}
                   </div>
                 </motion.button>
               );
