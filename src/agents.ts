@@ -23,6 +23,5 @@ export const AGENTS: AgentConfig[] = [
 export function warningForAgent(agent: AgentConfig, total?: number) {
   if (agent.expected && total === 0) return "empty";
   if (agent.family === "Unknown") return "unknown source";
-  if (agent.workspaceId === "agent-main" && total && total > 0) return "fallback bucket";
   return "";
 }
