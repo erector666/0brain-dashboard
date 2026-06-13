@@ -564,286 +564,201 @@ button:focus-visible {
   margin-bottom: 10px;
 }
 
-/* ===== Agent Card — Flight Card Design ===== */
-.agent-card {
+/* ===== Profile Card Design (from card-5) ===== */
+.profile-card {
   width: 100%;
   display: block;
   text-align: left;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: 12px;
+  border-radius: var(--radius-xl);
   background: var(--bg-surface-strong);
   color: var(--text-primary);
   cursor: pointer;
+  margin-bottom: 12px;
   transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 
-.agent-card:hover {
-  border-color: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.45);
-  box-shadow: 0 0 28px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.12);
+.profile-card:hover {
+  border-color: rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.45);
+  box-shadow: 0 0 24px rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.12);
 }
 
-.agent-card.selected {
-  border-color: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.7);
-  box-shadow: 0 0 32px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.18);
+.profile-card.selected {
+  border-color: rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.65);
+  box-shadow: 0 0 28px rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.16);
 }
 
-/* Image / avatar header area */
-.agent-card-image {
-  position: relative;
-  height: 72px;
+/* Header: avatar + name/handle row */
+.profile-card-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  gap: 12px;
+  padding: 16px 16px 0;
 }
 
-.agent-card-image .agent-avatar-wrapper {
+/* Circular avatar */
+.profile-avatar-wrapper {
   position: relative;
   width: 48px;
   height: 48px;
+  flex-shrink: 0;
 }
 
-.agent-card-image .agent-avatar-img {
+.profile-avatar-img {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 999px;
   object-fit: cover;
   background: rgba(255, 255, 255, 0.06);
 }
 
-.agent-card-image .agent-avatar-custom {
-  box-shadow: 0 0 0 2px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.3);
+.profile-avatar-img.custom {
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.3);
 }
 
-.agent-card-image .agent-avatar-fallback {
+.profile-avatar-fallback {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.25);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.2);
   color: white;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   text-transform: uppercase;
 }
 
-.agent-card-image .agent-avatar-ring {
-  position: absolute;
-  inset: -2px;
-  border: 1px solid rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.4);
-  border-radius: 14px;
-  animation: ob1-pulse 3.4s infinite;
-  pointer-events: none;
+/* Name + handle */
+.profile-card-info {
+  min-width: 0;
+  flex: 1;
 }
 
-/* Card body — padded content below image */
-.agent-card-body {
-  position: relative;
-  padding: 14px;
-}
-
-/* Route row — agent name ↔ stats (like departure ↔ arrival) */
-.agent-card-route {
+.profile-card-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.profile-card-icon {
+  font-size: 11px;
+  opacity: 0.45;
+  line-height: 1;
+}
+
+.profile-card-handle {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin: 2px 0 0;
+  line-height: 1.3;
+}
+
+/* Color swatch */
+.profile-card-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent, var(--agent-accent));
+  box-shadow: 0 0 10px rgba(var(--accent-rgb, var(--agent-accent-rgb)), 0.5);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.12s var(--ease-out);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.profile-card-swatch:hover {
+  transform: scale(1.35);
+}
+
+/* Warning badge */
+.profile-card-warning {
+  margin: 10px 16px 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--warn);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+/* Stats row — like the profile card's border-t border-b section */
+.profile-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 12px 16px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 0;
   gap: 8px;
 }
 
-.agent-card-origin,
-.agent-card-dest {
+.profile-card-stat {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1px;
+  flex: 1;
 }
 
-.agent-card-dest {
-  text-align: right;
-}
-
-.agent-card-primary {
-  font-size: 15px;
+.profile-card-stat-value {
+  font-size: 16px;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
-.agent-card-sub {
-  font-size: 10px;
+.profile-card-stat-label {
+  font-size: 9px;
   color: var(--text-tertiary);
-  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
+  font-weight: 600;
 }
 
-.agent-card-connector {
+/* Meta row — workspace + status */
+.profile-card-meta {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.agent-card-code {
-  font-size: 18px;
-  line-height: 1;
-  opacity: 0.5;
-}
-
-/* Dashed divider */
-.agent-card-divider {
-  border-top: 1px dashed var(--border-subtle);
-  margin: 10px 0;
-}
-
-/* Info row — three labeled items (like the flight card's Airline / Flight Code / Class) */
-.agent-card-info-row {
-  display: flex;
   justify-content: space-between;
-  gap: 4px;
+  padding: 10px 16px 14px;
+  gap: 12px;
 }
 
-.agent-info-item {
+.profile-card-meta-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
+  gap: 1px;
   flex: 1;
 }
 
-.agent-info-icon {
-  color: var(--text-tertiary);
-  opacity: 0.6;
-}
-
-.agent-info-value {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.agent-info-label {
+.profile-card-meta-label {
   font-size: 9px;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 600;
-  text-align: center;
 }
 
-/* Color swatch — overlay on the card body */
-.agent-color-swatch {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--agent-color, var(--agent-accent));
-  box-shadow: 0 0 12px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.6);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.12s var(--ease-out);
+.profile-card-meta-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.agent-color-swatch:hover {
-  transform: scale(1.3);
-}
-
-.agent-avatar-wrapper {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  flex: 0 0 auto;
-}
-
-.agent-avatar-img {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  object-fit: cover;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.agent-avatar-custom {
-  box-shadow: 0 0 0 2px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.3);
-}
-
-.agent-avatar-fallback {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.25);
-  color: white;
-  font-weight: 600;
-  font-size: 20px;
-  text-transform: uppercase;
-}
-
-.agent-avatar-fallback-lg {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  background: rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.25);
-  color: white;
-  font-weight: 600;
-  font-size: 24px;
-  text-transform: uppercase;
-}
-
-.agent-avatar-md {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  object-fit: cover;
-  background: rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
-}
-
-.agent-avatar-lg {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  object-fit: cover;
-  background: rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 2px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.3);
-}
-
-.agent-avatar-ring {
-  position: absolute;
-  inset: -3px;
-  border: 1px solid rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.45);
-  border-radius: 18px;
-  animation: ob1-pulse 3.4s infinite;
-}
-
-/* Color swatch — overlay on the card body */
-.agent-color-swatch {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--agent-color, var(--agent-accent));
-  box-shadow: 0 0 12px rgba(var(--agent-color-rgb, var(--agent-accent-rgb)), 0.6);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.12s var(--ease-out);
-}
-
-.agent-color-swatch:hover {
-  transform: scale(1.3);
+.profile-card-meta-value.active {
+  color: var(--good);
 }
 
 /* ===== Badges ===== */

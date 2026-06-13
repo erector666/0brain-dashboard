@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, type Variants } from "motion/react";
 import { warningForAgent } from "../agents";
 import { useCustomAvatars } from "../hooks/useCustomAvatars";
-import { Database, Activity, Shield, type LucideIcon } from "lucide-react";
 import type { AgentConfig, StatsResponse } from "../types";
 
 const FAMILY_ICONS: Record<string, string> = {
@@ -13,15 +12,6 @@ const FAMILY_ICONS: Record<string, string> = {
 function getFamilyIcon(agent: AgentConfig): string {
   return FAMILY_ICONS[agent.family] || "◆";
 }
-
-/** Label + value pair, same pattern as the flight card InfoItem */
-const InfoItem = ({ label, value, icon: Icon }: { label: string; value: string; icon?: LucideIcon }) => (
-  <div className="agent-info-item">
-    {Icon && <Icon size={12} className="agent-info-icon" />}
-    <span className="agent-info-value">{value}</span>
-    <span className="agent-info-label">{label}</span>
-  </div>
-);
 
 function groupAgentsByFamily(agents: AgentConfig[]) {
   const groups: { family: string; agents: AgentConfig[] }[] = [];
@@ -45,18 +35,18 @@ function groupAgentsByFamily(agents: AgentConfig[]) {
   return groups;
 }
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, when: "beforeChildren", staggerChildren: 0.08 },
+    transition: { duration: 0.4, staggerChildren: 0.1 },
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
 };
 
 export function AgentSidebar({
@@ -81,7 +71,7 @@ export function AgentSidebar({
   const [showAvatars, setShowAvatars] = useState(true);
   const { getCustomAvatar, setCustomAvatar, getAgentColor, setAgentColor, avatarError, setAvatarError } =
     useCustomAvatars(
-      Object.fromEntries(agentIds.map((id) => [id, id === "sam" ? "#7c7ee0" : id === "tank" ? "#c9953a" : id === "lucifer" ? "#d96262" : id === "dean" ? "#5d8fe0" : id === "cass" ? "#2ea077" : id === "crowley" ? "#957ae0" : id === "bobby" ? "#d9863e" : "#6366f1"])),
+      Object.fromEntries(agentIds.map((id) => [id, getDefaultColor(id)])),
       agentIds
     );
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -136,29 +126,38 @@ export function AgentSidebar({
               const warning = warningForAgent(agent, agentStats?.total);
               const customAvatar = getCustomAvatar(agent.id);
               const avatarSrc = customAvatar || agent.avatar;
-              const agentColor = getAgentColor(agent.id) || (agent.id === "sam" ? "#7c7ee0" : agent.id === "tank" ? "#c9953a" : agent.id === "lucifer" ? "#d96262" : agent.id === "dean" ? "#5d8fe0" : agent.id === "cass" ? "#2ea077" : agent.id === "crowley" ? "#957ae0" : agent.id === "bobby" ? "#d9863e" : "#6366f1");
+              const agentColor = getAgentColor(agent.id) || getDefaultColor(agent.id);
               const isSelected = selected.workspaceId === agent.workspaceId;
+
+              const statItems = [
+                ...(agentStats ? [
+                  { label: "TOTAL", value: agentStats.total },
+                  { label: "UNCONFIRMED", value: agentStats.unconfirmed },
+                ] : [
+                  { label: "MEMORIES", value: "…" },
+                ]),
+              ];
 
               return (
                 <motion.button
                   key={agent.workspaceId}
-                  className={`agent-card ${isSelected ? "selected" : ""}`}
+                  className={`profile-card ${isSelected ? "selected" : ""}`}
                   onClick={() => onSelect(agent)}
                   style={{
-                    "--agent-color": agentColor,
-                    "--agent-color-rgb": hexToRgb(agentColor),
+                    "--accent": agentColor,
+                    "--accent-rgb": hexToRgb(agentColor),
                   } as React.CSSProperties}
                   variants={cardVariants}
                   initial="hidden"
                   animate="visible"
-                  whileHover={{ scale: 1.02, transition: { duration: 0.25 } }}
+                  whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  {/* Agent image / avatar header */}
-                  <div className="agent-card-image" style={{ backgroundColor: `${agentColor}22` }}>
+                  {/* Header: avatar + name/handle */}
+                  <motion.div variants={itemVariants} className="profile-card-header">
                     {showAvatars ? (
                       <div
-                        className="agent-avatar-wrapper"
+                        className="profile-avatar-wrapper"
                         onClick={(e) => { e.stopPropagation(); handleAvatarClick(agent.id); }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
@@ -175,60 +174,35 @@ export function AgentSidebar({
                             src={avatarSrc}
                             alt={agent.name}
                             loading="lazy"
-                            className={`agent-avatar-img ${customAvatar ? "agent-avatar-custom" : ""}`}
+                            className={`profile-avatar-img ${customAvatar ? "custom" : ""}`}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = "none";
-                              const fb = (e.target as HTMLImageElement).parentElement?.querySelector(".agent-avatar-fallback");
-                              if (fb) (fb as HTMLElement).style.display = "grid";
+                              const fb = (e.target as HTMLImageElement).parentElement?.querySelector(".profile-avatar-fallback");
+                              if (fb) (fb as HTMLElement).style.display = "flex";
                             }}
                           />
                         ) : null}
-                        <div className="agent-avatar-fallback" style={{ display: avatarSrc ? "none" : "grid" }}>
+                        <div className="profile-avatar-fallback" style={{ display: avatarSrc ? "none" : "flex" }}>
                           {agent.name.charAt(0)}
                         </div>
-                        <div className="agent-avatar-ring" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={(el) => { fileInputs.current[agent.id] = el; }}
+                          style={{ display: "none" }}
+                          onChange={(e) => handleFileChange(agent.id, e.target.files?.[0] ?? null)}
+                        />
                       </div>
                     ) : null}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={(el) => { fileInputs.current[agent.id] = el; }}
-                      style={{ display: "none" }}
-                      onChange={(e) => handleFileChange(agent.id, e.target.files?.[0] ?? null)}
-                    />
-                  </div>
-
-                  {/* Details */}
-                  <div className="agent-card-body">
-                    <motion.div variants={itemVariants} className="agent-card-route">
-                      <div className="agent-card-origin">
-                        <span className="agent-card-primary">{agent.name}</span>
-                        <span className="agent-card-sub">{agent.family}</span>
-                      </div>
-                      <div className="agent-card-connector">
-                        <span className="agent-card-code">{getFamilyIcon(agent)}</span>
-                      </div>
-                      <div className="agent-card-dest">
-                        <span className="agent-card-primary">{agentStats ? agentStats.total : "..."}</span>
-                        <span className="agent-card-sub">memories</span>
-                      </div>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants} className="agent-card-divider" />
-
-                    <motion.div variants={itemVariants} className="agent-card-info-row">
-                      <InfoItem label="Provider" value={agent.provider === "ob1-agent-memory" ? "OB1" : "0Brain"} icon={Database} />
-                      <InfoItem label="Workspace" value={agent.workspaceId.replace("agent-", "")} icon={Activity} />
-                      <InfoItem
-                        label="Status"
-                        value={warning ? warning : agentStats && agentStats.total > 0 ? "active" : "idle"}
-                        icon={Shield}
-                      />
-                    </motion.div>
-
-                    {/* Color picker */}
+                    <div className="profile-card-info">
+                      <h2 className="profile-card-name">
+                        {agent.name}
+                        <span className="profile-card-icon">{getFamilyIcon(agent)}</span>
+                      </h2>
+                      <p className="profile-card-handle">{agent.family} / {agent.provider === "ob1-agent-memory" ? "OB1" : "0Brain"}</p>
+                    </div>
                     <div
-                      className="agent-color-swatch"
+                      className="profile-card-swatch"
                       onClick={(e) => { e.stopPropagation(); handleColorClick(agent.id); }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -247,7 +221,38 @@ export function AgentSidebar({
                       style={{ display: "none" }}
                       onChange={(e) => handleColorChange(agent.id, e.target.value)}
                     />
-                  </div>
+                  </motion.div>
+
+                  {/* Warning / status line */}
+                  {warning ? (
+                    <motion.div variants={itemVariants} className="profile-card-warning">
+                      {warning}
+                    </motion.div>
+                  ) : null}
+
+                  {/* Stats: memory counts — like the profile card's border-t border-b row */}
+                  <motion.div variants={itemVariants} className="profile-card-stats">
+                    {statItems.map((stat) => (
+                      <div key={stat.label} className="profile-card-stat">
+                        <span className="profile-card-stat-value">{stat.value}</span>
+                        <span className="profile-card-stat-label">{stat.label}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+
+                  {/* Bottom info: workspace + status */}
+                  <motion.div variants={itemVariants} className="profile-card-meta">
+                    <div className="profile-card-meta-item">
+                      <span className="profile-card-meta-label">Workspace</span>
+                      <span className="profile-card-meta-value">{agent.workspaceId.replace("agent-", "")}</span>
+                    </div>
+                    <div className="profile-card-meta-item">
+                      <span className="profile-card-meta-label">Status</span>
+                      <span className={`profile-card-meta-value ${agentStats && agentStats.total > 0 ? "active" : "idle"}`}>
+                        {agentStats && agentStats.total > 0 ? "active" : "idle"}
+                      </span>
+                    </div>
+                  </motion.div>
                 </motion.button>
               );
             })}
@@ -256,6 +261,14 @@ export function AgentSidebar({
       </aside>
     </>
   );
+}
+
+function getDefaultColor(id: string): string {
+  const colors: Record<string, string> = {
+    sam: "#7c7ee0", tank: "#c9953a", lucifer: "#d96262",
+    dean: "#5d8fe0", cass: "#2ea077", crowley: "#957ae0", bobby: "#d9863e",
+  };
+  return colors[id] || "#6366f1";
 }
 
 function hexToRgb(hex: string): string {
